@@ -2,14 +2,9 @@
 session_start();
 include '../config/database.php';
 
-function redirectToHome()
-{
-    header("Location: ../index.php");
-    exit;
-}
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../index.php");
+    header("Location: index.php");
     exit;
 }
 
@@ -25,7 +20,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($conn->query($sql) === TRUE) {
         $_SESSION['success_message'] = "Content submitted successfully.";
-        redirectToHome();
+        header("Location: index.php");
+        exit;
     } else {
         echo "Error: " . $sql . "<br>" . $conn->error;
     }

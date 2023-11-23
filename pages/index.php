@@ -16,8 +16,8 @@ if (isset($_SESSION['success_message'])) {
 // Check if the user is already logged in
 if (isset($_SESSION['user_id'])) {
 	// User is logged in
-	include 'templates/logged_in_content.php';
+	include '../templates/logged_in_content.php';
 } else {
 	// User is not logged in
-	include 'templates/welcome_content.php';
+	include '../templates/welcome_content.php';
 }
