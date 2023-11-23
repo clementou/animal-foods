@@ -2,7 +2,7 @@
 
 ## users table
 
-![Screenshot of users table][images/users.png]
+![Screenshot of users table](./images/users.png)
 
 ```sql
 CREATE TABLE users (
@@ -16,7 +16,7 @@ CREATE TABLE users (
 
 ## submissions table
 
-![Screenshot of submissions table][images/submission.png]
+![Screenshot of submissions table](./images/submissions.png)
 
 ```sql
 CREATE TABLE submissions (
