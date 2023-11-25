@@ -9,18 +9,31 @@
 <body>
     <header>
         <!-- Home Button -->
-        <a href="index.php" class="home-button">Home</a>
+        <a href="/animal-foods/" class="home-button">Home</a>
         <br>
 
         <?php
         if (isset($_SESSION['user_id'])) {
-            echo '<a href="dashboard.php">Dashboard</a>';
+            $userId = $_SESSION['user_id'];
+
+            // Fetch unread notifications for the user
+            $notificationQuery = "SELECT * FROM notifications WHERE user_id = '$userId' AND is_read = 0"; // is_read is assumed to be a BOOLEAN or TINYINT
+            $notificationResult = $conn->query($notificationQuery);
+
+            echo '<div class="notifications">';
+            while ($notification = $notificationResult->fetch_assoc()) {
+                echo '<div class="notification">';
+                echo '<a href="' . $notification['link'] . '">' . $notification['message'] . '</a>';
+                echo '</div>';
+            }
+            echo '</div>';
+            echo '<a href="/animal-foods/dashboard">Dashboard</a>';
             echo '<br>';
-            echo '<a href="../src/logout.php">Logout</a>';
+            echo '<a href="/animal-foods/src/logout.php">Logout</a>';
         } else {
-            echo '<a href="../templates/login_form.php">Login</a>';
+            echo '<a href="/animal-foods/login_form">Login</a>';
             echo '<br>';
-            echo '<a href="../templates/signup_form.php">Signup</a>';
+            echo '<a href="/animal-foods/signup_form">Signup</a>';
         }
         ?>
     </header>

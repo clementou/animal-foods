@@ -3,7 +3,7 @@ include '../config/database.php';
 
 function redirectToHome()
 {
-    header("Location: index.php");
+    header("Location: /animal-foods/");
     exit;
 }
 

@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['tag_submission_id'])) 
 
 
     <!-- Content Submission Form -->
-    <form action="../src/submit_content.php" method="post">
+    <form action="/animal-foods/src/submit_content.php" method="post">
         <input type="text" name="animal" placeholder="Animal" required>
         <input type="text" name="food_name" placeholder="Food Name" required>
         <textarea name="description" placeholder="Description" required></textarea>

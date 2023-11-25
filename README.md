@@ -34,6 +34,11 @@ CREATE TABLE submissions (
 );
 ```
 
+## tags table
+
+![Screenshot of tags table](./images/tags.png)
+
+![Screenshot of submission tags table](./images/submission_tags.png)
 
 ```sql
 CREATE TABLE tags (
@@ -47,5 +52,44 @@ CREATE TABLE submission_tags (
     FOREIGN KEY (submission_id) REFERENCES submissions(id),
     FOREIGN KEY (tag_id) REFERENCES tags(id)
 );
+```
 
+## badges table
+
+![Screenshot of badges table](./images/badges.png)
+
+![Screenshot of user badges table](./images/user_badges.png)
+
+```sql
+CREATE TABLE badges (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255),
+    description TEXT,
+    criteria TEXT,
+    image_url VARCHAR(255)
+);
+CREATE TABLE user_badges (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    badge_id INT,
+    awarded_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (badge_id) REFERENCES badges(id)
+);
+```
+
+## notifications table
+
+![Screenshot of notifications table](./images/notifications.png)
+
+```sql
+CREATE TABLE notifications (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    message TEXT,
+    link VARCHAR(255),
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
 ```

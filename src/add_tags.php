@@ -38,7 +38,20 @@ if (isset($_POST['tag_submission_id']) && isset($_POST['tags'])) {
             $conn->query($insertSubmissionTagQuery);
         }
     }
+
+    $submissionOwnerQuery = "SELECT user_id FROM submissions WHERE id = '$submissionId'";
+    $submissionOwnerResult = $conn->query($submissionOwnerQuery);
+    if ($submissionOwnerResult->num_rows > 0) {
+        $submissionOwnerRow = $submissionOwnerResult->fetch_assoc();
+        $postOwnerId = $submissionOwnerRow['user_id'];
+
+        // Create a notification for the post owner
+        $notificationMessage = "A new tag was added to your post.";
+        $notificationLink = "/animal-foods/"; // Modify this link to point to the actual post
+        $createNotificationQuery = "INSERT INTO notifications (user_id, message, link) VALUES ('$postOwnerId', '$notificationMessage', '$notificationLink')";
+        $conn->query($createNotificationQuery);
+    }
 }
 
-header("Location: index.php");
+header("Location: /animal-foods/");
 exit();

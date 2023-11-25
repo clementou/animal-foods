@@ -2,5 +2,4 @@ RewriteEngine On
 
 # Rewrite "www.example.com/page" to "www.example.com/pages/page.php"
 RewriteRule ^$ pages/index.php [L]
-
-RewriteRule ^dashboard.php$ pages/dashboard.php [L]
+RewriteRule ^([a-zA-Z0-9_-]+)$ pages/$1.php [L]
