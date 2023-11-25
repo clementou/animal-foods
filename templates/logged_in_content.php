@@ -1,7 +1,13 @@
 <?php
-include 'config/database.php';
-include 'src/display_content.php';
+include '../config/database.php';
+include '../templates/header.php';
+include '../src/display_content.php';
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['tag_submission_id'])) {
+    include '../src/add_tags.php';
+}
 ?>
+
 
 <!DOCTYPE html>
 <html>
@@ -14,18 +20,15 @@ include 'src/display_content.php';
 <body>
     <h1>Welcome Back, <?php echo $_SESSION['username']; ?>!</h1>
 
-    <!-- Logout Button -->
-    <a href="src/logout.php" class="logout-button">Logout</a>
-
     <!-- Search Form -->
-    <form action="" method="get"> <!-- You can specify an action if needed -->
+    <form action="" method="get">
         <input type="text" name="search" placeholder="Search submissions...">
         <button type="submit">Search</button>
     </form>
 
 
     <!-- Content Submission Form -->
-    <form action="src/submit_content.php" method="post">
+    <form action="/animal-foods/src/submit_content.php" method="post">
         <input type="text" name="animal" placeholder="Animal" required>
         <input type="text" name="food_name" placeholder="Food Name" required>
         <textarea name="description" placeholder="Description" required></textarea>
@@ -34,10 +37,10 @@ include 'src/display_content.php';
         <button type="submit">Submit</button>
     </form>
 
-    <!-- Display Submitted Content -->
+    <!-- Display Submitted Content and Tagging Form -->
     <?php
     $searchTerm = isset($_GET['search']) ? $_GET['search'] : '';
-    displayContent($conn, $searchTerm);
+    displayContent($conn, $searchTerm, true); // Updated displayContent function call with tagging option
     ?>
 
 </body>

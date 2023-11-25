@@ -1,12 +1,6 @@
 <?php
 include '../config/database.php';
 
-function redirectToHome()
-{
-    header("Location: ../index.php");
-    exit;
-}
-
 function isValidEmail($email)
 {
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
@@ -17,7 +11,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
     $email = $conn->real_escape_string($_POST['email']);
 
-    // Validate email
     if (!isValidEmail($email)) {
         echo "Invalid email format";
         return;
@@ -36,7 +29,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $sql = "INSERT INTO users (username, password, email) VALUES ('$username', '$password', '$email')";
     if ($conn->query($sql) === TRUE) {
         $_SESSION['success_message'] = "Account created successfully. You can now login.";
-        redirectToHome();
+        header("Location: /animal-foods/");
+        exit;
     } else {
         echo "Error: " . $sql . "<br>" . $conn->error;
     }
