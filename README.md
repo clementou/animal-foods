@@ -2,7 +2,7 @@
 
 Social Web Application for 95-882 Enterprise Web Development.
 
-Uses a Gaussian Mixture Model to calculate recomendations for users based on interactions (likes, favorites) and item content (tags).
+Uses a Gaussian Mixture Model to calculate recomendations for users based on interactions (likes, favorites) and item content (tags). Honestly not sure why I chose this model.
 
 Might change it to a hybrid system if I'm feeling frisky.
 
