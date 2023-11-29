@@ -40,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['tag_submission_id'])) 
     <!-- Display Submitted Content and Tagging Form -->
     <?php
     $searchTerm = isset($_GET['search']) ? $_GET['search'] : '';
-    displayContent($conn, $searchTerm, true); // Updated displayContent function call with tagging option
+    displayContent($conn, $searchTerm, $_SESSION['user_id']);
     ?>
 
 </body>

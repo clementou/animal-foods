@@ -1,6 +1,10 @@
 # Animal Foods
 
-Social Web Application for 95-882 Enterprise Web Development
+Social Web Application for 95-882 Enterprise Web Development.
+
+Uses a Gaussian Mixture Model to calculate recomendations for users based on interactions (likes, favorites) and item content (tags).
+
+Might change it to a hybrid system if I'm feeling frisky.
 
 ## users table
 
@@ -91,5 +95,51 @@ CREATE TABLE notifications (
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
+);
+```
+
+## votes table
+
+![Screenshot of votes table](./images/votes.png)
+
+```sql
+CREATE TABLE votes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    submission_id INT NOT NULL,
+    vote_type ENUM('upvote', 'downvote'),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (submission_id) REFERENCES submissions(id)
+);
+```
+
+## favorites table
+
+![Screenshot of favorites table](./images/favorites.png)
+
+```sql
+CREATE TABLE favorites (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    submission_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (submission_id) REFERENCES submissions(id)
+);
+```
+
+## recommendations table
+
+![Screenshot of recommendations table](./images/recommendations.png)
+
+```sql
+CREATE TABLE user_recommendations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    recommended_submission_id INT NOT NULL,
+    score FLOAT DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (recommended_submission_id) REFERENCES submissions(id)
 );
 ```

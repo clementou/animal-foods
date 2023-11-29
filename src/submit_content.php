@@ -18,6 +18,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Insert the new post
     $insertSql = "INSERT INTO submissions (user_id, animal, food_name, description, extra_info, media_link) VALUES ('$user_id', '$animal', '$food_name', '$description', '$extra_info', '$media_link')";
     if ($conn->query($insertSql) === TRUE) {
+        $submissionId = $conn->insert_id;
+
+        // Automatically upvote the post by the user who submitted it
+        $autoUpvoteSql = "INSERT INTO votes (user_id, submission_id, vote_type) VALUES ('$user_id', '$submissionId', 'upvote')";
+        $conn->query($autoUpvoteSql);
+        
         $_SESSION['success_message'] = "Content submitted successfully.";
 
         // Check if this is the user's first post
