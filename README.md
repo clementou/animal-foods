@@ -102,13 +102,13 @@ CREATE TABLE notifications (
 
 ```sql
 CREATE TABLE votes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     submission_id INT NOT NULL,
     vote_type ENUM('upvote', 'downvote'),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (submission_id) REFERENCES submissions(id)
+    FOREIGN KEY (submission_id) REFERENCES submissions(id),
+    UNIQUE (user_id, submission_id)
 );
 ```
 
@@ -133,11 +133,11 @@ CREATE TABLE favorites (
 
 ```sql
 CREATE TABLE user_recommendations (
-    id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     recommended_submission_id INT NOT NULL,
     score FLOAT DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (recommended_submission_id) REFERENCES submissions(id)
+    FOREIGN KEY (recommended_submission_id) REFERENCES submissions(id),
+    UNIQUE (user_id, recommended_submission_id)
 );
 ```

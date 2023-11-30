@@ -15,7 +15,7 @@ if (isset($_POST['tag_submission_id']) && isset($_POST['tags'])) {
     $tags = explode(',', $tagString);
 
     foreach ($tags as $tag) {
-        $tag = trim($tag); // Remove whitespace
+        $tag = trim($tag);
 
         if (!empty($tag)) {
             // Check if the tag exists in the database
