@@ -1,7 +1,8 @@
 import pandas as pd
 from sqlalchemy import create_engine, text
-from sklearn.mixture import GaussianMixture
-from sklearn.preprocessing import MinMaxScaler
+from surprise import SVD, Dataset, Reader, accuracy
+from surprise.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 engine = create_engine('mysql+mysqlconnector://root:@localhost/animal_foods')
@@ -41,72 +42,66 @@ def preprocess_tags(data):
     tag_matrix = data['tags'].str.get_dummies(sep=', ')
     return tag_matrix
 
-interaction_data = fetch_interaction_data(engine)
-tags_data = fetch_tags_data(engine)
-interaction_matrix = create_interaction_matrix(interaction_data)
-tag_matrix = preprocess_tags(tags_data)
+def matrix_factorization_recommendations(interaction_matrix):
+    reader = Reader(rating_scale=(0, interaction_matrix.max().max()))
+    data = Dataset.load_from_df(interaction_matrix.stack().reset_index(name='interaction'), reader)
+    trainset, testset = train_test_split(data, test_size=0.25)
 
-# Combine interaction and tag matrices
-combined_matrix = interaction_matrix.join(tag_matrix, how='left').fillna(0)
+    algo = SVD()
+    algo.fit(trainset)
 
-def cluster_users(data):
-    data.columns = data.columns.astype(str)
-    scaler = MinMaxScaler()
-    scaled_data = scaler.fit_transform(data)
-    num_samples = scaled_data.shape[0]
-    num_clusters = min(num_samples, 5)
-    if num_clusters < 2:
-        print("Insufficient data for clustering")
-        return data, None
+    # Predictions and evaluation
+    predictions = algo.test(testset)
+    accuracy.rmse(predictions)
 
-    gmm = GaussianMixture(n_components=num_clusters, random_state=42)
-    gmm.fit(scaled_data)
-    data['cluster'] = gmm.predict(scaled_data)
-    return data, gmm
-
-def generate_recommendations(user_data, gmm_model, interaction_matrix, num_recommendations=5):
+    # Generate user-specific recommendations
     recommendations = {}
-
-    if gmm_model is None:
-        print("No GMM model provided.")
-        return recommendations
-
-    # Get the centroids of the clusters
-    centroids = gmm_model.means_
-
-    for user_id, cluster in user_data['cluster'].items():
-        user_vector = interaction_matrix.loc[user_id].values.reshape(1, -1)
-        centroid = centroids[cluster].reshape(1, -1)
-        
-        # Compute the similarity between the user's vector and all item vectors
-        similarities = cosine_similarity(user_vector, interaction_matrix.values)[0]
-        
-        # Get the item indices sorted by similarity (excluding already interacted items)
-        interacted_items = set(interaction_matrix.columns[interaction_matrix.loc[user_id] > 0])
-        similar_items = sorted(((i, sim) for i, sim in enumerate(similarities) if interaction_matrix.columns[i] not in interacted_items), key=lambda x: x[1], reverse=True)
-        
-        # Store the top N recommendations and their scores
-        top_n_items = similar_items[:num_recommendations]
-        recommendations[user_id] = [(interaction_matrix.columns[i], score) for i, score in top_n_items]
+    for user_id in interaction_matrix.index:
+        user_predictions = [algo.predict(user_id, iid) for iid in interaction_matrix.columns if interaction_matrix.loc[user_id, iid] == 0]
+        user_recommendations = sorted(user_predictions, key=lambda x: x.est, reverse=True)[:5]
+        recommendations[user_id] = [(pred.iid, pred.est) for pred in user_recommendations]
 
     return recommendations
 
-user_clusters, gmm_model = cluster_users(combined_matrix)
-recommendations = generate_recommendations(user_clusters, gmm_model, interaction_matrix)
+def tfidf_tag_recommendations(tags_data, tag_matrix):
+    tfidf_vectorizer = TfidfVectorizer()
+    tfidf_matrix = tfidf_vectorizer.fit_transform(tags_data['tags'])
+
+    # Compute cosine similarity for each submission
+    cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+
+    recommendations = {}
+    for idx, row in tags_data.iterrows():
+        submission_id = row['submission_id']
+        sim_scores = list(enumerate(cosine_sim[idx]))
+        sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1:6]  # Top 5 similar submissions
+        recommendations[submission_id] = [tags_data.iloc[i[0]].submission_id for i in sim_scores]
+
+    return recommendations
+
+def combined_recommendations(user_recommendations, tag_recommendations):
+    combined = {}
+    for user_id, user_recs in user_recommendations.items():
+        combined[user_id] = []
+        for submission_id, score in user_recs:
+            # Combine with tag recommendations for top items
+            if submission_id in tag_recommendations:
+                for tag_submission_id in tag_recommendations[submission_id]:
+                    combined[user_id].append((tag_submission_id, score))
+        # Limit to top 5 unique recommendations
+        combined[user_id] = list(set(combined[user_id]))[:5]
+    return combined
 
 def store_recommendations(engine, recommendations):
     with engine.connect() as conn:
         for user_id, recs in recommendations.items():
             user_id = int(user_id)
-
-            # Delete old recommendations for the user
             delete_sql = text('DELETE FROM user_recommendations WHERE user_id = :user_id')
             conn.execute(delete_sql, {'user_id': user_id})
 
             for rec, score in recs:
                 try:
                     rec = int(rec)
-                    # Insert new recommendation with the user_id, submission_id, and score
                     sql = text('INSERT INTO user_recommendations (user_id, recommended_submission_id, score) VALUES (:user_id, :rec, :score)')
                     params = {'user_id': user_id, 'rec': rec, 'score': score}
                     conn.execute(sql, params)
@@ -114,7 +109,16 @@ def store_recommendations(engine, recommendations):
                     print(f"Skipping invalid recommendation: user_id={user_id}, rec={rec}")
                 except Exception as e:
                     print("Error occurred:", e)
-            # Commit after all inserts for the user
             conn.commit()
 
-store_recommendations(engine, recommendations)
+# Main execution flow
+interaction_data = fetch_interaction_data(engine)
+tags_data = fetch_tags_data(engine)
+interaction_matrix = create_interaction_matrix(interaction_data)
+tag_matrix = preprocess_tags(tags_data)
+
+user_recommendations = matrix_factorization_recommendations(interaction_matrix)
+tag_recommendations = tfidf_tag_recommendations(tags_data, tag_matrix)
+combined_recs = combined_recommendations(user_recommendations, tag_recommendations)
+
+store_recommendations(engine, combined_recs)
