@@ -19,6 +19,10 @@ if ($badgeCheckResult->num_rows > 0) {
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['new_username'])) {
     include '../src/edit_username.php';
 }
+
+$favoritesSql = "SELECT s.* FROM favorites f JOIN submissions s ON f.submission_id = s.id WHERE f.user_id = '$user_id'";
+$favoritesResult = $conn->query($favoritesSql);
+
 ?>
 
 <!DOCTYPE html>
@@ -39,7 +43,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['new_username'])) {
         <button type="submit">Update Username</button>
     </form>
 
-    <?php include '../templates/footer.php'; ?>
+    <!-- Display Favorited Posts -->
+    <h2>Your Favorited Posts</h2>
+    <?php
+    if ($favoritesResult->num_rows > 0) {
+        while ($row = $favoritesResult->fetch_assoc()) {
+            echo "<div class='favorite-post'>";
+            echo "<h3>" . htmlspecialchars($row['food_name']) . "</h3>";
+            echo "<p>" . htmlspecialchars($row['description']) . "</p>";
+            // Add more details as you like, e.g., images, extra info, etc.
+            echo "</div>";
+        }
+    } else {
+        echo "<p>You have no favorited posts.</p>";
+    }
+
+    include '../templates/footer.php'; ?>
 </body>
 
 </html>
